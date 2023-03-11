@@ -2,13 +2,11 @@ var express = require('express');
 const axios = require('axios');
 var router = express.Router();
 var path = require('path');
-/* GET home page. */
+
 var api_key = "94UcyU0cGrWAaWAD6zABpFsfJKNi6znX"
 
 router.get('/', async (req, res) => {
-  const filePath = path.join(__dirname, '../public/index.html');
-  res.sendFile(filePath);
-  /*
+  
   // Get parameters from the URL
   const keyword = req.query.keyword;
   const radius = parseInt(req.query.distance);
@@ -37,7 +35,7 @@ router.get('/', async (req, res) => {
     console.error(error);
     res.status(500).send('Internal Server Error');
   }
-  */
+  
 });
 
 module.exports = router;
