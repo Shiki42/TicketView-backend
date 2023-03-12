@@ -23,7 +23,6 @@ router.get('/', async (req, res) => {
     default: ''
   };
   const segmentId = category_to_segmentId[category] || '';
-
   // Send a GET request to the Ticketmaster Event Search API
   const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${keyword}&radius=${radius}&unit=miles&geoPoint=${geoPoint}&segmentId=${segmentId}&apikey=${api_key}`;
   try {
@@ -33,9 +32,29 @@ router.get('/', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    const errorMessage = `Internal Server Error: ${error.message}. Parameters received: category=${category}, keyword=${keyword}, distance=${radius}, geoPoint=${geoPoint}`;
+    res.status(500).send(errorMessage);
   }
   
+});
+
+
+router.get('/details', async (req, res) => {
+  // Get the event_id parameter from the URL
+  const event_id = req.query.event_id;
+
+  // Send a GET request to the Ticketmaster Event Details API
+  const url = `https://app.ticketmaster.com/discovery/v2/events/${event_id}.json?apikey=${api_key}`;
+
+  try {
+    const response = await axios.get(url);
+
+    // Return response JSON
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 module.exports = router;
