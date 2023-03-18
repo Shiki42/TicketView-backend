@@ -10,6 +10,7 @@ var usersRouter = require('./routes/users');
 var autoCompleteRouter = require('./routes/autoComplete');
 var eventSearchRouter = require('./routes/eventSearch');
 var venueSearchRouter = require('./routes/venueSearch');
+var artistSearchRouter = require('./routes/artistSearch');
 
 const port = 3000;
 var app = express();
@@ -30,6 +31,7 @@ app.use('/users', usersRouter);
 app.use('/events', eventSearchRouter);
 app.use('/venues', venueSearchRouter);
 app.use('/autoComplete', autoCompleteRouter);
+app.use('/artist', artistSearchRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
