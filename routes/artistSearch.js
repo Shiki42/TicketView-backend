@@ -20,40 +20,82 @@ var authOptions = {
 var spotifyApi = new SpotifyWebApi({
   clientId: SpotifyClientId,
   clientSecret: SpotifyClientSecret,
-  redirectUri: 'http://www.example.com/callback'
 });
 
-var clientCredentialsGrant = () => {
-  request.post(authOptions, function(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      var token = body.access_token;
-      spotifyApi.setAccessToken(token);
-      // Perform other operations using spotifyApi object here
-    } else {
-      console.log(error);
-    }
-  });
-}
+spotifyApi.clientCredentialsGrant().then(
+  function(data) {
+    console.log('The access token expires in ' + data.body['expires_in']);
+    console.log('The access token is ' + data.body['access_token']);
 
-clientCredentialsGrant();
+    // Save the access token so that it's used in future calls
+    spotifyApi.setAccessToken(data.body['access_token']);
+  },
+  function(err) {
+    console.log('Something went wrong when retrieving an access token', err);
+  }
+);
+
 
 router.get('/', async (req, res) => {
   const keyword = req.query.keyword;
-  spotifyApi.searchArtists(keyword)
-    .then(function(data) {
-      if (data.statusCode === 200) {
+
+  const searchArtists = () => {
+    return spotifyApi.searchArtists(keyword)
+      .then(function (data) {
         res.json(data.body);
-      } else if (data.statusCode === 401) {
-        clientCredentialsGrant();
-        spotifyApi.searchArtists(keyword)
-          .then(function(data) {
-            res.json(data.body);
-          }, function(err) {
-            console.error(err);
+      });
+  };
+
+  searchArtists()
+    .catch(function (err) {
+      if (err.statusCode === 401) {
+        spotifyApi.clientCredentialsGrant()
+          .then(function (data) {
+            // Save the access token so that it's used in future calls
+            spotifyApi.setAccessToken(data.body['access_token']);
+
+            // Now you can use the access token to make API calls
+            return searchArtists();
+          })
+          .catch(function (err) {
+            // Handle errors in the client credentials grant API call
+            console.error('Failed to get client credentials grant:', err);
           });
+      } else {
+        console.error(err);
       }
-    }, function(err) {
-      console.error(err);
+    });
+});
+
+
+router.get('/album', async (req, res) => {
+  const artistId = req.query.id;
+
+  const getArtistAlbums = () => {
+    return spotifyApi.getArtistAlbums(artistId, { limit: 3 })
+      .then(function (data) {
+        res.json(data.body);
+      });
+  };
+
+  getArtistAlbums()
+    .catch(function (err) {
+      if (err.statusCode === 401) {
+        spotifyApi.clientCredentialsGrant()
+          .then(function (data) {
+            // Save the access token so that it's used in future calls
+            spotifyApi.setAccessToken(data.body['access_token']);
+
+            // Now you can use the access token to make API calls
+            return getArtistAlbums();
+          })
+          .catch(function (err) {
+            // Handle errors in the client credentials grant API call
+            console.error('Failed to get client credentials grant:', err);
+          });
+      } else {
+        console.error(err);
+      }
     });
 });
 
